@@ -146,7 +146,7 @@ export const updateIDPost = {
 
 
 export const CreateCommentsRepository = {
-  async CreateComment(content: string, rest: any): Promise<CreateCommentsType | undefined> {
+  async CreateComment(content: string, modifiedRest: any): Promise<CreateCommentsType | undefined> {
   if (!content.trim()) {
     return undefined;
   }
@@ -155,13 +155,13 @@ export const CreateCommentsRepository = {
   const result = await collection4.insertOne({
     id: objectId,
     content,
-    commentatorInfo: rest,
+    commentatorInfo: modifiedRest,
     createdAt: createdAt1,
   });
   return {
     id: result.insertedId,
     content,
-    commentatorInfo: rest,
+    commentatorInfo: modifiedRest,
     createdAt: createdAt1,
   };
 }

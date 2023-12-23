@@ -243,6 +243,15 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
     
   const { _id, createdAt, password, email, ...rest } = authUser; 
 
+  const modifiedRest: {
+    [key: string]: any;
+    userId: ObjectId;
+    userLogin: string;
+  } = {
+    userId: rest.id,
+    userLogin: rest.login,
+  };
+
   // Проверяем, что все обязательные поля заполнены
   const errorsMessages = [];
   
@@ -260,7 +269,7 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
   }
 
   // Создаем новый пост
-  const newComment = await CreateCommentsRepository.CreateComment(content, rest);
+  const newComment = await CreateCommentsRepository.CreateComment(content, modifiedRest);
 
   // Возвращаем созданный пост с кодом 201
   return res.status(201).json(newComment);
