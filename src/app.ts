@@ -12,6 +12,7 @@ const app = express();
 
 const parserMiddleware = express.json()
 
+
 app.use(parserMiddleware)
 app.use("/hometask_06/api/blogs", blogsRoutes)
 app.use("/hometask_06/api", postsForBlogsRoutes)
