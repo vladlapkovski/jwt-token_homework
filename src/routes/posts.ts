@@ -222,7 +222,7 @@ postsRouter.put('/:id', async (req: Request, res: Response) => {
 
 
 
-postsRouter.post('/id/comments', async (req: Request, res: Response) => {
+postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
 
   const { content } = req.body as CreateCommentsType;
 
