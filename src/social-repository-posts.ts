@@ -169,6 +169,7 @@ export const CreateCommentsRepository = {
     content,
     commentatorInfo: modifiedRest,
     createdAt: createdAt1,
+    postId: postId,
   });
   return {
     id: result.insertedId,

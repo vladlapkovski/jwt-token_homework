@@ -228,6 +228,8 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
 
   const postId = new ObjectId(req.params.postId);
 
+  console.log(postId)
+
   if (!req.headers.authorization) {
     res.sendStatus(401);
     return;
@@ -237,6 +239,7 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
   let post;
     try {
       post = await collection1.findOne({ _id: new ObjectId(postId) });
+      console.log(post)
     } catch (error) {
       return res.status(404).json({
         message: 'Invalid postId',
@@ -244,9 +247,9 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
       });
     }
   
-    if (typeof post !== "object" || !post) {
+    if (!post) {
       return res.status(404).json({
-        message: 'Invalid postId',
+        message: 'Invalid postId1',
         field: 'postId'
       });
     }
@@ -298,7 +301,7 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
 
 
 
-  postsRouter.get('/posts/:postId/comments', async (req: Request, res: Response) => {
+  postsRouter.get('/:postId/comments', async (req: Request, res: Response) => {
     const searchNameTerm = req.query.searchNameTerm as string || null; // поисковый термин для имени поста
     const sortBy = req.query.sortBy as string || 'createdAt'; // поле для сортировки
     const sortDirection = req.query.sortDirection as string || 'desc'; // направление сортировки

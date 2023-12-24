@@ -66,6 +66,7 @@ export type GetPostComment = {
     userLogin: string;
   };
   createdAt: string;
+  postId: string;
 }
 
 const URL = process.env.MONGO_URL;
