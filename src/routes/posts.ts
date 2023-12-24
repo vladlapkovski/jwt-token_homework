@@ -1,5 +1,5 @@
 import express, {Request, Response, Router} from "express"
-import { CreateCommentsRepository, socialRepository, updateIDPost } from "../social-repository-posts";
+import { CreateCommentsRepository, GetCommentSocialRepository, socialRepository, updateIDPost } from "../social-repository-posts";
 import { collection, collectionPostsType, collection1, CreateCommentsType, GetPostComment, collection2, collection3 } from "../db";
 import { Collection, ObjectId } from 'mongodb';
 import { jwtService } from "../aplication/jwt-service";
@@ -226,10 +226,30 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
 
   const { content } = req.body as CreateCommentsType;
 
+  const postId = new ObjectId(req.params.postId);
+
   if (!req.headers.authorization) {
     res.sendStatus(401);
     return;
   }
+
+
+  let post;
+    try {
+      post = await collection1.findOne({ _id: new ObjectId(postId) });
+    } catch (error) {
+      return res.status(404).json({
+        message: 'Invalid postId',
+        field: 'postId'
+      });
+    }
+  
+    if (typeof post !== "object" || !post) {
+      return res.status(404).json({
+        message: 'Invalid postId',
+        field: 'postId'
+      });
+    }
 
 
 
@@ -269,8 +289,63 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
   }
 
   // Создаем новый пост
-  const newComment = await CreateCommentsRepository.CreateComment(content, modifiedRest);
+  const newComment = await CreateCommentsRepository.CreateComment(content, modifiedRest, postId);
 
   // Возвращаем созданный пост с кодом 201
   return res.status(201).json(newComment);
   })
+
+
+
+
+  postsRouter.get('/posts/:postId/comments', async (req: Request, res: Response) => {
+    const searchNameTerm = req.query.searchNameTerm as string || null; // поисковый термин для имени поста
+    const sortBy = req.query.sortBy as string || 'createdAt'; // поле для сортировки
+    const sortDirection = req.query.sortDirection as string || 'desc'; // направление сортировки
+    const pageNumber = parseInt(req.query.pageNumber as string) || 1; // номер страницы (по умолчанию 1)
+    const pageSize = parseInt(req.query.pageSize as string) || 10; // количество элементов на странице (по умолчанию 10)
+    const startIndex = (pageNumber - 1) * pageSize; // индекс начального элемента
+    const endIndex = pageNumber * pageSize; // индекс конечного элемента
+    const comments = await GetCommentSocialRepository.getComments();
+    const postId = new ObjectId(req.params.postId);
+    let post;
+  try {
+    post = await collection1.findOne({ _id: postId });
+  } catch (error) {
+    return res.status(404).json({
+      message: 'Invalid postId',
+      field: 'postId'
+    });
+  }
+
+  if (!post) {
+    return res.status(404).json({
+      message: 'Invalid postId',
+      field: 'postId'
+    });
+  }
+
+  let filteredComments = comments.filter(comment => comment.postId === req.params.postId);
+  if (searchNameTerm) {
+    filteredComments = comments.filter(comment => comment.title.toLowerCase().includes(searchNameTerm.toLowerCase()));
+  }
+
+  filteredComments.sort((a, b) => {
+    if (sortDirection === 'asc') {
+      return a[sortBy] > b[sortBy] ? 1 : -1;
+    } else {
+      return a[sortBy] < b[sortBy] ? 1 : -1;
+    }
+  });
+    
+    const paginatedComments = filteredComments.slice(startIndex, endIndex); // получаем только нужные элементы для текущей страницы
+
+    
+    return res.status(200).json({
+      pagesCount: Math.ceil(filteredComments.length / pageSize), // общее количество страниц
+      page: pageNumber, // текущая страница
+      pageSize: pageSize, // размер страницы
+      totalCount: filteredComments.length, // общее количество элементов после фильтрации
+      items: paginatedComments // массив постов для текущей страницы
+    });
+  });

@@ -146,10 +146,22 @@ export const updateIDPost = {
 
 
 export const CreateCommentsRepository = {
-  async CreateComment(content: string, modifiedRest: any): Promise<CreateCommentsType | undefined> {
+  async CreateComment(content: string, modifiedRest: any, postId: ObjectId): Promise<CreateCommentsType | undefined> {
   if (!content.trim()) {
     return undefined;
   }
+
+  let post;
+    try {
+      post = await collection1.findOne({ _id: new ObjectId(postId) });
+    } catch (error) {
+      return undefined;
+    }
+
+    if (typeof post !== "object" || !post) {
+      return undefined;
+    }
+
   const createdAt1 = new Date().toISOString();
   const objectId = new ObjectId();
   const result = await collection4.insertOne({
@@ -166,3 +178,14 @@ export const CreateCommentsRepository = {
   };
 }
 }
+
+
+export const GetCommentSocialRepository = {
+  async getComments(): Promise<CreateCommentsType[]> {
+    const foundComments = await collection4.find({}).toArray();
+    const comments = foundComments.map((comment) => {
+      const { _id, ...rest } = comment;
+      return rest;
+    });
+    return comments;
+  }}
