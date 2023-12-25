@@ -302,7 +302,7 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
 
 
   postsRouter.get('/:postId/comments', async (req: Request, res: Response) => {
-    const searchNameTerm = req.query.searchNameTerm as string || null; // поисковый термин для имени поста
+    // const searchNameTerm = req.query.searchNameTerm as string || null; // поисковый термин для имени поста
     const sortBy = req.query.sortBy as string || 'createdAt'; // поле для сортировки
     const sortDirection = req.query.sortDirection as string || 'desc'; // направление сортировки
     const pageNumber = parseInt(req.query.pageNumber as string) || 1; // номер страницы (по умолчанию 1)
@@ -328,10 +328,10 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
     });
   }
 
-  let filteredComments = comments.filter(comment => comment.postId === req.params.postId);
-  if (searchNameTerm) {
-    filteredComments = comments.filter(comment => comment.title.toLowerCase().includes(searchNameTerm.toLowerCase()));
-  }
+  let filteredComments = comments.filter(comment => comment.postId == req.params.postId);
+  // if (searchNameTerm) {
+  //   filteredComments = comments.filter(comment => comment.title.toLowerCase().includes(searchNameTerm.toLowerCase()));
+  // }
 
   filteredComments.sort((a, b) => {
     if (sortDirection === 'asc') {
@@ -340,6 +340,10 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
       return a[sortBy] < b[sortBy] ? 1 : -1;
     }
   });
+
+
+  filteredComments = filteredComments.map(({ _id, postId, ...rest }) => rest);
+
     
     const paginatedComments = filteredComments.slice(startIndex, endIndex); // получаем только нужные элементы для текущей страницы
 
