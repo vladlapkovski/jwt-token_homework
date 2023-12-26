@@ -64,19 +64,19 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
 
   const { content } = req.body as CreateCommentsType;
 
-  if (!req.headers.authorization) {
-    res.sendStatus(401);
+  if (!req.headers.authorization || !req.headers.authorization.startsWith("Bearer ")) {
+    res.sendStatus(403);
     return;
   }
 
   const token = req.headers.authorization.split(" ")[1];
   const JWTtoken = await jwtService.getUserIdByToken(token);
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
-  const checkRightForChanges = await collection4.findOne({ userId: JWTtoken as ObjectId})
+  // const checkRightForChanges = await collection4.findOne({ userId: JWTtoken as ObjectId})
 
-  if (!checkRightForChanges) {
-    return res.sendStatus(403);
-  } 
+  // if (!checkRightForChanges) {
+  //   return res.sendStatus(403);
+  // } 
 
   if (!authUser) {
     return res.sendStatus(401);
