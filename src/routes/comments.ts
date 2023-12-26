@@ -1,11 +1,12 @@
 import express, {Request, Response, Router} from "express"
 import { getIDBlog, socialRepository } from "../social-repository-blogs";
 import { socialRepositoryForPostsInBlogs } from "../social-repositoryForPostsInBlogs"
-import { collection, collection3, collection4, collectionBlogsType, collectionPostsType } from '../db';
+import { CreateCommentsType, collection, collection3, collection4, collectionBlogsType, collectionPostsType } from '../db';
 export const commentsRoutes = Router({}) 
 import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
 import { jwtService } from "../aplication/jwt-service";
+import { updateIdComment } from "../social-repository-posts";
 
 
 commentsRoutes.get('/:id', async (req: Request, res: Response) => {
@@ -50,4 +51,66 @@ commentsRoutes.delete('/:id', async (req: Request, res: Response) => {
     return res.status(404).send()
   }
 
+});
+
+
+
+commentsRoutes.put('/:id', async (req: Request, res: Response) => {
+  const id = new ObjectId(req.params.id);
+
+  const { content } = req.body as CreateCommentsType;
+  
+  if (!req.headers.authorization) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const token = req.headers.authorization.split(" ")[1];
+  const JWTtoken = await jwtService.getUserIdByToken(token);
+  const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
+
+  if (!authUser) {
+    return res.status(404).json({ message: 'User not found' });
+  } 
+
+  const errorsMessages = [];
+  // const nouseerrors = [];
+
+  // let blog;
+  //   try {
+  //     blog = await collection.findOne({ _id: new ObjectId(blogId) });
+  //   } catch (error) {
+  //     nouseerrors.push({
+  //       message: 'Invalid blogId',
+  //       field: 'blogId'
+  //     });
+  //   }
+
+  //   if (typeof blog !== "object" || !blog) {
+  //     errorsMessages.push({
+  //       message: 'Invalid blogId',
+  //       field: 'blogId'
+  //     });
+  //   }
+
+  if (!content || content?.trim()?.length == 0 || content?.length > 300 || content?.length < 20) {
+    errorsMessages.push({
+      message: 'Invalid content', 
+      field: "content"
+    });
+  }
+
+  if (errorsMessages.length > 0) {
+    return res.status(400).json({
+      errorsMessages
+    });
+  }
+
+  const updatedComment = await updateIdComment.updateCommentById(content, id);
+
+  if (!updatedComment) {
+    return res.status(404).send("Comment not found");
+  } else {
+    return res.status(204).send(updatedComment);
+  }
 });

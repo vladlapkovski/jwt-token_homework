@@ -191,3 +191,31 @@ export const GetCommentSocialRepository = {
     });
     return comments;
   }}
+
+
+
+
+  export const updateIdComment = {
+    async updateCommentById(content: string, id: ObjectId) {
+      if (typeof content !== 'string' || !content.trim()) {
+        return undefined;
+      }
+  
+      const updateComment = {
+        $set: {
+          content
+        }
+      };
+  
+      const result = await collection4.findOneAndUpdate({ _id: id }, updateComment);
+  
+      if (result) {
+        const updatedComment = result as CreateCommentsType;
+        return {
+          content: updatedComment.content
+        };
+      } else {
+        return undefined;
+      }
+    }
+  };
