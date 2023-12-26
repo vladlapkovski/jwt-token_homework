@@ -9,6 +9,10 @@ import { jwtService } from "../aplication/jwt-service";
 import { updateIdComment } from "../social-repository-posts";
 
 
+const auth = "admin:qwerty";
+const encodedAuth = Buffer.from(auth).toString("base64");
+
+
 commentsRoutes.get('/:id', async (req: Request, res: Response) => {
 
     const id = new ObjectId(req.params.id);
@@ -59,6 +63,12 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
   const id = new ObjectId(req.params.id);
 
   const { content } = req.body as CreateCommentsType;
+
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || authHeader !== `Basic ${encodedAuth}`) {
+    return res.status(401).send();
+  }
   
   if (!req.headers.authorization) {
     res.sendStatus(401);
