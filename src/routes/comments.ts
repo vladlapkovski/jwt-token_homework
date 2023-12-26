@@ -65,7 +65,7 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
   const { content } = req.body as CreateCommentsType;
 
   if (!req.headers.authorization || !req.headers.authorization.startsWith("Bearer ")) {
-    res.sendStatus(403);
+    res.sendStatus(401);
     return;
   }
 
