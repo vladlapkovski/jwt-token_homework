@@ -280,7 +280,7 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
   if (!content || content?.trim()?.length == 0 || content?.length > 300 || content?.length < 20) {
     errorsMessages.push({
     message: 'Invalid content',
-    field: 'title'
+    field: 'content'
   });
   }
 
