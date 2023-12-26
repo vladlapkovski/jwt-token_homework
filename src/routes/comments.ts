@@ -64,12 +64,6 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
 
   const { content } = req.body as CreateCommentsType;
 
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || authHeader !== `Basic ${encodedAuth}`) {
-    return res.status(401).send();
-  }
-  
   if (!req.headers.authorization) {
     res.sendStatus(401);
     return;
@@ -80,7 +74,7 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
 
   if (!authUser) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(401);
   } 
 
   const errorsMessages = [];
