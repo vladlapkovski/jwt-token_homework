@@ -74,7 +74,7 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
 
   if (!authUser) {
-    return res.status(401);
+    return res.sendStatus(403);
   } 
 
   const errorsMessages = [];
