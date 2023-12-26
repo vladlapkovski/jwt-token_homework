@@ -228,7 +228,6 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
 
   const postId = new ObjectId(req.params.postId);
 
-  console.log(postId)
 
   if (!req.headers.authorization) {
     res.sendStatus(401);
