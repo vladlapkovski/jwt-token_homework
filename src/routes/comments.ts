@@ -38,8 +38,23 @@ commentsRoutes.delete('/:id', async (req: Request, res: Response) => {
   }
 
   const token = req.headers.authorization.split(" ")[1];
-  const JWTtoken = await jwtService.getUserIdByToken(token);
+  const JWTtoken = await jwtService.getUserIdByToken(token);// userId перенаименовать
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
+  const Comment = await collection4.findOne({ "id": id})
+  
+
+  if(!Comment){
+    return res.sendStatus(404)
+  }
+
+
+  if(!JWTtoken){
+    return res.sendStatus(401)
+  }
+
+  if (Comment.commentatorInfo.userId !== JWTtoken.toString()) {
+    return res.sendStatus(403);
+  } 
 
   if (!authUser) {
     return res.status(401).json({ message: 'User not found' });
@@ -72,11 +87,21 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
   const token = req.headers.authorization.split(" ")[1];
   const JWTtoken = await jwtService.getUserIdByToken(token);
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
-  const checkRightForChanges = await collection4.findOne({ "commentatorInfo.userId": JWTtoken as ObjectId})
+  const Comment = await collection4.findOne({ "id": id})
 
-  if (!checkRightForChanges) {
+  if(!Comment){
+    return res.sendStatus(404)
+  }
+
+
+  if(!JWTtoken){
+    return res.sendStatus(401)
+  }
+
+  if (Comment.commentatorInfo.userId !== JWTtoken.toString()) {
     return res.sendStatus(403);
   } 
+
 
   if (!authUser) {
     return res.sendStatus(401);
