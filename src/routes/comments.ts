@@ -40,9 +40,9 @@ commentsRoutes.delete('/:id', async (req: Request, res: Response) => {
   const token = req.headers.authorization.split(" ")[1];
   const JWTtoken = await jwtService.getUserIdByToken(token);// userId перенаименовать
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
-  const Comment = await collection4.findOne({ "id": id})
+  const Comment = await collection4.findOne({ id: id})
+  console.log(Comment)
   
-
   if(!Comment){
     return res.sendStatus(404)
   }
@@ -52,7 +52,8 @@ commentsRoutes.delete('/:id', async (req: Request, res: Response) => {
     return res.sendStatus(401)
   }
 
-  if (Comment.commentatorInfo.userId !== JWTtoken.toString()) {
+  if (Comment.commentatorInfo.userId.toString() !== JWTtoken.toString()) {
+    console.log("123")
     return res.sendStatus(403);
   } 
 
