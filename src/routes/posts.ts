@@ -260,7 +260,7 @@ postsRouter.post('/:postId/comments', async (req: Request, res: Response) => {
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
 
   if (!authUser) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(401).json({ message: 'User not found' });
   } 
     
   const { _id, createdAt, password, email, ...rest } = authUser; 

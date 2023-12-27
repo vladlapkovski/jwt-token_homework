@@ -64,7 +64,7 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
 
   const { content } = req.body as CreateCommentsType;
 
-  if (!req.headers.authorization || !req.headers.authorization.startsWith("Bearer ")) {
+  if (!req.headers.authorization) {
     res.sendStatus(401);
     return;
   }
@@ -83,24 +83,6 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
   } 
 
   const errorsMessages = [];
-  // const nouseerrors = [];
-
-  // let blog;
-  //   try {
-  //     blog = await collection.findOne({ _id: new ObjectId(blogId) });
-  //   } catch (error) {
-  //     nouseerrors.push({
-  //       message: 'Invalid blogId',
-  //       field: 'blogId'
-  //     });
-  //   }
-
-  //   if (typeof blog !== "object" || !blog) {
-  //     errorsMessages.push({
-  //       message: 'Invalid blogId',
-  //       field: 'blogId'
-  //     });
-  //   }
 
   if (!content || content?.trim()?.length == 0 || content?.length > 300 || content?.length < 20) {
     errorsMessages.push({
