@@ -99,7 +99,7 @@ commentsRoutes.put('/:id', async (req: Request, res: Response) => {
     return res.sendStatus(401)
   }
 
-  if (Comment.commentatorInfo.userId !== JWTtoken.toString()) {
+  if (Comment.commentatorInfo.userId.toString() !== JWTtoken.toString()) {
     return res.sendStatus(403);
   } 
 
