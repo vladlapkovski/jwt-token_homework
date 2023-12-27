@@ -42,7 +42,7 @@ commentsRoutes.delete('/:id', async (req: Request, res: Response) => {
   const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
 
   if (!authUser) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(401).json({ message: 'User not found' });
   } 
 
   const postIndex = await collection4.findOne({ _id: id })
