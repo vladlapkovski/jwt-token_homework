@@ -6,6 +6,7 @@ import { postsForBlogsRoutes } from "./routes/postsForBlogs";
 import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
 import { commentsRoutes } from "./routes/comments";
+import { emailRouter } from "./send-mail";
 
 export const appStart = ()=> {
 const app = express();
@@ -21,5 +22,6 @@ app.use("/hometask_06/api/testing/all-data", dataRouter)
 app.use("/hometask_06/api/auth", authRoutes)
 app.use("/hometask_06/api/users", usersRoutes)
 app.use("/hometask_06/api/comments", commentsRoutes)
+app.use("/hometask_06/api/email", emailRouter)
 return app;
 }
