@@ -15,13 +15,13 @@ const parserMiddleware = express.json()
 
 
 app.use(parserMiddleware)
-app.use("/hometask_06/api/blogs", blogsRoutes)
-app.use("/hometask_06/api", postsForBlogsRoutes)
-app.use("/hometask_06/api/posts", postsRouter)
-app.use("/hometask_06/api/testing/all-data", dataRouter)
-app.use("/hometask_06/api/auth", authRoutes)
-app.use("/hometask_06/api/users", usersRoutes)
-app.use("/hometask_06/api/comments", commentsRoutes)
-app.use("/hometask_06/api/email", emailRouter)
+app.use("/hometask_07/api/blogs", blogsRoutes)
+app.use("/hometask_07/api", postsForBlogsRoutes)
+app.use("/hometask_07/api/posts", postsRouter)
+app.use("/hometask_07/api/testing/all-data", dataRouter)
+app.use("/hometask_07/api/auth", authRoutes)
+app.use("/hometask_07/api/users", usersRoutes)
+app.use("/hometask_07/api/comments", commentsRoutes)
+app.use("/hometask_07/api/email", emailRouter)
 return app;
 }
