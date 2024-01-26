@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId } from "mongodb";
 import dotenv from 'dotenv';
 import { type } from "os";
+import { V4Options } from "uuid";
 
 dotenv.config();
 
@@ -67,6 +68,17 @@ export type GetPostComment = {
   };
   createdAt: string;
   postId: string;
+}
+
+
+
+export type RequestTypeOfRegistrationOfUser = {
+  [key: string]: any;
+  login: string;
+  password: string;
+  email: string;
+  statusOfConfirmedEmail:boolean;
+  confirmCode: any
 }
 
 const URL = process.env.MONGO_URL;
