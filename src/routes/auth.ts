@@ -115,7 +115,10 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
     // Проверяем данные в базе данных
     const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
     if (checkLoginAndEmail == false) {
-        return res.status(400).send("the user with the given email or password already exists");
+        return res.status(400).json({
+            message: 'Invalid email',
+            field: 'email'
+          });
     }
     const RegisteredUser = await socialRepositoryForRegistrationUsers.RegistrateUser(login, password, email);
 
@@ -164,7 +167,10 @@ authRoutes.post('/registration-email-resending', async (req: Request, res: Respo
     if (SendMail) {
         return res.status(200).send("Input data is accepted. Email with confirmation code will be send to passed email address")
     } else {
-        return res.status(400).send();
+        return res.status(400).json({
+            message: 'Invalid email',
+            field: 'email'
+          });
     }
 });
 
@@ -198,6 +204,9 @@ authRoutes.post('/registration-confirmation', async (req: Request, res: Response
     if (confirmation) {
         return res.status(200).send("Email was verified. Account was activated")
     } else {
-        return res.status(400).send("The confirmation code is incorrect, expired or already been applied");
+        return res.status(400).json({
+            message: 'Invalid code',
+            field: 'code'
+          });
     }
 });
