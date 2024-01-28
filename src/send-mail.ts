@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { RequestTypeOfRegistrationOfUser, collection3 } from "./db";
+import { RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection3 } from "./db";
 import { v4 as uuidv4 } from 'uuid';
 
 export const emailRouter = Router({})
@@ -68,5 +68,41 @@ const code = uuidv4()
     }
 };
 
+
+
+export const ResendEmailSocialRepository = { 
+  async Resend(email: string): Promise< ResendingEmailInputData | undefined> {
+    if (!email.trim()) {
+        return undefined;
+    }
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "clengovno6@gmail.com",
+        pass: "ltet sgcr vkvf dvhs",
+      },
+    });
+    const user = await collection3.findOne({ $or: [{ email: email }] });
+
+    if (!user) {
+        return undefined;
+    }
+    const info = await transporter.sendMail({
+      from: 'Vlad', // sender address
+      to: email, // list of receivers
+      subject: "SCHOOL OF DOTA2", // Subject line
+      html: `https://jwt-token-homework.vercel.app/hometask_07/api/auth/registration-confirmation?${code}`, // html body
+    });
+    
+    return {
+      email,
+      statusOfConfirmedEmail: false,
+      confirmCode: code
+    };
+  }
+};
 
   

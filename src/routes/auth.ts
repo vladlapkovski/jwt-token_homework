@@ -1,14 +1,14 @@
 import express, {Request, Response, Router} from "express"
 import { getIDBlog, socialRepository } from "../social-repository-blogs";
 import { socialRepositoryForPostsInBlogs } from "../social-repositoryForPostsInBlogs"
-import { RequestTypeOfRegistrationOfUser, collection, collection3, collectionAuthType, collectionPostsType } from '../db';
+import { ConfirmRegistration, RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection, collection3, collectionAuthType, collectionPostsType } from '../db';
 export const authRoutes = Router({}) 
 import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
 import { socialRepositoryForAuth } from "../social-repository-auth";
 import { jwtService } from "../aplication/jwt-service";
-import { CheckMailAndLoginForRepeat, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
-import { RegistrationOfUserSocialRepository } from "../send-mail";
+import { CheckMailAndLoginForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
+import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from "../send-mail";
 
 
 authRoutes.post('/login', async (req: Request, res: Response) => {
@@ -128,5 +128,79 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
         }
     } else {
         return res.status(400).send(); 
+    }
+});
+
+
+
+
+authRoutes.post('/registration-email-resending', async (req: Request, res: Response) => {
+    const { email } = req.body as ResendingEmailInputData;
+
+    const errorsMessages = [];
+
+    // Проверяем, что все обязательные поля заполнены
+
+    if (typeof email!== "string" || !email || email?.trim()?.length == 0) {
+        errorsMessages.push({
+            message: 'Invalid email', 
+            field: "email"
+        });
+    }
+
+
+    if (errorsMessages.length > 0) {
+        return res.status(400).json({
+            errorsMessages
+        });
+    }
+    // Проверяем данные в базе данных
+    // const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
+    // if (checkLoginAndEmail == false) {
+    //     return res.status(400).send("the user with the given email or password already exists");
+    // }
+        
+    const SendMail = await ResendEmailSocialRepository.Resend(email)
+    if (SendMail) {
+        return res.status(200).send("Input data is accepted. Email with confirmation code will be send to passed email address")
+    } else {
+        return res.status(400).send();
+    }
+});
+
+
+
+
+authRoutes.post('/registration-confirmation', async (req: Request, res: Response) => {
+    const { code } = req.body as ConfirmRegistration;
+
+    const errorsMessages = [];
+
+    // Проверяем, что все обязательные поля заполнены
+
+    if (typeof code!== "string" || !code || code?.trim()?.length == 0) {
+        errorsMessages.push({
+            message: 'Invalid code', 
+            field: "code"
+        });
+    }
+
+
+    if (errorsMessages.length > 0) {
+        return res.status(400).json({
+            errorsMessages
+        });
+    }
+    // Проверяем данные в базе данных
+    // const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
+    // if (checkLoginAndEmail == false) {
+    //     return res.status(400).send("the user with the given email or password already exists");
+    // }
+        
+    const confirmation = await ConfirmEmail.UpdateConfirmationStatus(code)
+    if (confirmation) {
+        return res.status(200).send("Email was verified. Account was activated")
+    } else {
+        return res.status(400).send("The confirmation code is incorrect, expired or already been applied");
     }
 });

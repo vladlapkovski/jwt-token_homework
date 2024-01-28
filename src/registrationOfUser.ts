@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { GetUserType, RequestTypeOfRegistrationOfUser, collection3 } from "./db";
+import { ConfirmRegistration, GetUserType, RequestTypeOfRegistrationOfUser, collection3 } from "./db";
 import { v4 as uuidv4 } from 'uuid';
 import { Router } from "express";
 
@@ -85,6 +85,26 @@ export const CheckMailAndLoginForRepeat = {
           return false;
       } else {
         return true
+      }
+  }
+};
+
+
+
+export const ConfirmEmail = { 
+  async UpdateConfirmationStatus(code: string): Promise<GetUserType | undefined> {
+      if (!code.trim()) {
+          return undefined;
+      }
+      const user = await collection3.findOneAndUpdate(
+        { "confirmCode" : code },
+        { $set: { "statusOfConfirmedEmail" : true } }
+     )
+
+      if (user) {
+        return user;
+      } else {
+        return undefined
       }
   }
 };

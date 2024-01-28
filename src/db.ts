@@ -81,6 +81,17 @@ export type RequestTypeOfRegistrationOfUser = {
   confirmCode: any
 }
 
+
+export type ResendingEmailInputData = {
+  [key: string]: any;
+  email: string;
+}
+
+export type ConfirmRegistration = {
+  [key: string]: any;
+  code: string;
+}
+
 const URL = process.env.MONGO_URL;
 console.log("url:", URL);
 if (!URL) {
