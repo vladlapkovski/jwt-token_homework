@@ -113,10 +113,10 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
         });
     }
     // Проверяем данные в базе данных
-    // const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
-    // if (checkLoginAndEmail == false) {
-    //     return res.status(400).send("the user with the given email or password already exists");
-    // }
+    const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
+    if (checkLoginAndEmail == false) {
+        return res.status(400).send("the user with the given email or password already exists");
+    }
     const RegisteredUser = await socialRepositoryForRegistrationUsers.RegistrateUser(login, password, email);
 
     if (RegisteredUser) {
@@ -192,10 +192,7 @@ authRoutes.post('/registration-confirmation', async (req: Request, res: Response
         });
     }
     // Проверяем данные в базе данных
-    // const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
-    // if (checkLoginAndEmail == false) {
-    //     return res.status(400).send("the user with the given email or password already exists");
-    // }
+    
         
     const confirmation = await ConfirmEmail.UpdateConfirmationStatus(code)
     if (confirmation) {
