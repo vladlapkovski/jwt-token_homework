@@ -125,7 +125,7 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
     if (RegisteredUser) {
         const SendMail = await RegistrationOfUserSocialRepository.RegistrationOfUser(login, password, email)
         if (SendMail) {
-            return res.status(204).send("Input data is accepted. Email with confirmation code will be send to passed email address")
+            return res.status(204).send()
         } else {
             return res.status(400).send();
         }
@@ -167,10 +167,8 @@ authRoutes.post('/registration-email-resending', async (req: Request, res: Respo
     if (SendMail) {
         return res.status(200).send("Input data is accepted. Email with confirmation code will be send to passed email address")
     } else {
-        return res.status(400).json({
-            message: 'Invalid email',
-            field: 'email'
-          });
+        const errorsMessages = [];
+        return res.status(400).json({ errorsMessages: [{ message: "invalid email", field: "email" }] });
     }
 });
 
