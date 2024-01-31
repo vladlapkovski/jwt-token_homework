@@ -81,6 +81,13 @@ export type RequestTypeOfRegistrationOfUser = {
   confirmCode: any
 }
 
+export type RequestTypeForResendEmail = {
+  [key: string]: any;
+  email: string;
+  statusOfConfirmedEmail:boolean;
+  confirmCode: any
+}
+
 
 export type ResendingEmailInputData = {
   [key: string]: any;

@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { ConfirmRegistration, GetUserType, RequestTypeOfRegistrationOfUser, collection3 } from "./db";
 import { v4 as uuidv4 } from 'uuid';
 import { Router } from "express";
+import { RegistrationOfUserSocialRepository } from "./send-mail";
 
 export const emailRouter = Router({})
 
@@ -12,6 +13,7 @@ async RegistrateUser(login: string, password: string, email: string): Promise<Re
     if (!login.trim() || !password.trim() || !email.trim()) {
       return undefined;
     }
+    
     const activationCode = uuidv4()
     const createdAtUser = new Date().toISOString();
     const objectId = new ObjectId();
@@ -25,6 +27,15 @@ async RegistrateUser(login: string, password: string, email: string): Promise<Re
       statusOfConfirmedEmail: false,
       confirmCode: activationCode
     });
+
+
+    if(result) {
+      const mail = RegistrationOfUserSocialRepository.RegistrationOfUser(login, password,email,activationCode) 
+        if(!mail){
+          return undefined
+        }
+    }
+
     return {
       id: result.insertedId,
       login,
@@ -37,41 +48,7 @@ async RegistrateUser(login: string, password: string, email: string): Promise<Re
   }
 };
 
-// export const RegistrationOfUserSocialRepository = { 
-//   async RegistrationOfUser(login: string, password: string, email: string): Promise<RequestTypeOfRegistrationOfUser | undefined> {
-//       if (!login.trim() || !password.trim() || !email.trim()) {
-//           return undefined;
-//       }
-//       const transporter = nodemailer.createTransport({
-//         service: "Gmail",
-//         host: "smtp.gmail.com",
-//         port: 465,
-//         secure: true,
-//         auth: {
-//           user: "clengovno6@gmail.com",
-//           pass: "ltet sgcr vkvf dvhs",
-//         },
-//       });
-//       const user = await collection3.findOne({ $or: [{ login: login }, { email: email }] });
 
-//       if (!user) {
-//           return undefined;
-//       }
-//       const info = await transporter.sendMail({
-//         from: 'Vlad', // sender address
-//         to: email, // list of receivers
-//         subject: "SCHOOL OF DOTA2", // Subject line
-//         html: `https://jwt-token-homework.vercel.app/hometask_07/api/auth/registration-confirmation?${uuidv4()}`, // html body
-//       });
-      
-//       return {
-//         login,
-//         password,
-//         email,
-//         statusOfConfirmedEmail: false
-//       };
-//   }
-// };
 
 
 export const CheckMailAndLoginForRepeat = { 
@@ -99,12 +76,28 @@ export const ConfirmEmail = {
       const user = await collection3.findOneAndUpdate(
         { "confirmCode" : code },
         { $set: { "statusOfConfirmedEmail" : true } }
-     )
+      )
 
       if (user) {
         return user;
       } else {
         return undefined
+      }
+  }
+};
+
+
+export const CheckEmailAndConfirmStatusForResend = { 
+  async FindEmailInDB(email: string): Promise<boolean> {
+      if (!email.trim()) {
+          return false;
+      }
+      const user = await collection3.findOne({ email: email });
+
+      if (!user || user.statusOfConfirmedEmail == true) {
+        return false;
+      } else {
+        return true
       }
   }
 };

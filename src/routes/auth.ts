@@ -7,7 +7,7 @@ import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
 import { socialRepositoryForAuth } from "../social-repository-auth";
 import { jwtService } from "../aplication/jwt-service";
-import { CheckMailAndLoginForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
+import { CheckEmailAndConfirmStatusForResend, CheckMailAndLoginForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
 import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from "../send-mail";
 
 
@@ -123,14 +123,9 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
     const RegisteredUser = await socialRepositoryForRegistrationUsers.RegistrateUser(login, password, email);
 
     if (RegisteredUser) {
-        const SendMail = await RegistrationOfUserSocialRepository.RegistrationOfUser(login, password, email)
-        if (SendMail) {
-            return res.status(204).send()
-        } else {
-            return res.status(400).send();
-        }
+        return res.status(204).send()
     } else {
-        return res.status(400).send(); 
+        return res.status(400).send();
     }
 });
 
@@ -158,16 +153,15 @@ authRoutes.post('/registration-email-resending', async (req: Request, res: Respo
         });
     }
     // Проверяем данные в базе данных
-    // const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
-    // if (checkLoginAndEmail == false) {
-    //     return res.status(400).send("the user with the given email or password already exists");
-    // }
+    const checkEmail = await CheckEmailAndConfirmStatusForResend.FindEmailInDB(email)
+    if (checkEmail == false) {
+        return res.status(400).send("the user with the given email not found or email is already confirmed");
+    }
         
-    const SendMail = await ResendEmailSocialRepository.Resend(email)
-    if (SendMail) {
+    const ResendMail = await ResendEmailSocialRepository.Resend(email)
+    if (ResendMail) {
         return res.status(200).send("Input data is accepted. Email with confirmation code will be send to passed email address")
     } else {
-        const errorsMessages = [];
         return res.status(400).json({ errorsMessages: [{ message: "invalid email", field: "email" }] });
     }
 });
