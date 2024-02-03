@@ -7,7 +7,7 @@ import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
 import { socialRepositoryForAuth } from "../social-repository-auth";
 import { jwtService } from "../aplication/jwt-service";
-import { CheckEmailAndConfirmStatusForResend, CheckMailAndLoginForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
+import { CheckEmailAndConfirmStatusForResend, CheckEmailForConfirmStatus, CheckLoginForRepeat, CheckMailForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
 import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from "../send-mail";
 
 
@@ -84,6 +84,8 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
 
     const errorsMessages = [];
 
+    const websiteEmailRegex = new RegExp('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$');
+
     // Проверяем, что все обязательные поля заполнены
     if (typeof login !== "string" || !login || login?.trim()?.length == 0 || login?.trim()?.length < 3 || login?.trim()?.length > 10) {
         errorsMessages.push({
@@ -99,7 +101,7 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
         });
     }
 
-    if (typeof email!== "string" || !email || email?.trim()?.length == 0) {
+    if (typeof email!== "string" || !email || email?.trim()?.length == 0 || !websiteEmailRegex.test(email)) {
         errorsMessages.push({
             message: 'Invalid email', 
             field: "email"
@@ -113,13 +115,16 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
         });
     }
     // Проверяем данные в базе данных
-    const checkLoginAndEmail = await CheckMailAndLoginForRepeat.Checking(login, password, email)
-    if (checkLoginAndEmail == false) {
-        return res.status(400).json({
-            message: 'Invalid email',
-            field: 'email'
-          });
+    const checkLogin = await CheckLoginForRepeat.Checking(login, password)
+    if (checkLogin == false) {
+        return res.status(400).json({ errorsMessages: [{ message: "invalid login", field: "login" }] });
     }
+    
+    const checkMail = await CheckMailForRepeat.Checking(password, email)
+    if (checkMail == false) {
+        return res.status(400).json({ errorsMessages: [{ message: "invalid email", field: "email" }] });
+    }
+
     const RegisteredUser = await socialRepositoryForRegistrationUsers.RegistrateUser(login, password, email);
 
     if (RegisteredUser) {
@@ -155,12 +160,12 @@ authRoutes.post('/registration-email-resending', async (req: Request, res: Respo
     // Проверяем данные в базе данных
     const checkEmail = await CheckEmailAndConfirmStatusForResend.FindEmailInDB(email)
     if (checkEmail == false) {
-        return res.status(400).send("the user with the given email not found or email is already confirmed");
+        return res.status(400).json({ errorsMessages: [{ message: "email was confirmed", field: "email" }] })
     }
         
     const ResendMail = await ResendEmailSocialRepository.Resend(email)
     if (ResendMail) {
-        return res.status(200).send("Input data is accepted. Email with confirmation code will be send to passed email address")
+        return res.status(204).send("Input data is accepted. Email with confirmation code will be send to passed email address")
     } else {
         return res.status(400).json({ errorsMessages: [{ message: "invalid email", field: "email" }] });
     }
@@ -191,14 +196,16 @@ authRoutes.post('/registration-confirmation', async (req: Request, res: Response
     }
     // Проверяем данные в базе данных
     
-        
+    const status = await CheckEmailForConfirmStatus.NoConfirmedStatus(code)    
+
+    if(status == false) {
+        return res.status(400).json({ errorsMessages: [{ message: "code already confirmed", field: "code" }] });
+    }    
+
     const confirmation = await ConfirmEmail.UpdateConfirmationStatus(code)
     if (confirmation) {
-        return res.status(200).send("Email was verified. Account was activated")
+        return res.status(204).send("Email was verified. Account was activated")
     } else {
-        return res.status(400).json({
-            message: 'Invalid code',
-            field: 'code'
-          });
+        return res.status(400).json({ errorsMessages: [{ message: " Invalid code", field: "code" }] });
     }
 });

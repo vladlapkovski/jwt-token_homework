@@ -9,7 +9,6 @@ export const socialRepositoryForAuth = {
             return undefined;
         }
         const user = await collection3.findOne({ $or: [{ login: loginOrEmail }, { email: loginOrEmail }] });
-
         if (!user || user.password !== password) {
             return undefined;
         }

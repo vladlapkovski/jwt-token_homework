@@ -25,13 +25,17 @@ export const socialRepositoryForUsers = {
         password,
         email,
         createdAt: createdAtUser,
-        _id: objectId
+        _id: objectId,
+        statusOfConfirmedEmail: true,
+        confirmCode: "no code status confirmed"
       });
       return {
         id: result.insertedId,
         login,
         email,
-        createdAt: createdAtUser
+        createdAt: createdAtUser,
+        statusOfConfirmedEmail:true,
+        confirmCode: "no code status confirmed"
       };
     }
   };

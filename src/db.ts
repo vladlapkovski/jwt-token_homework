@@ -48,6 +48,8 @@ export type GetUserType = {
   login: string;
   email: string;
   createdAt: string;
+  statusOfConfirmedEmail:boolean;
+  confirmCode: any
 }
 
 

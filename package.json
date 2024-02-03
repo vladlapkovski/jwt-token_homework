@@ -9,6 +9,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.1.0",
     "mongoose": "^7.6.3",
+    "ngrok": "^5.0.0-beta.2",
     "nodemailer": "^6.9.8",
     "uuid": "^9.0.1"
   },

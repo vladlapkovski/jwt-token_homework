@@ -51,12 +51,12 @@ async RegistrateUser(login: string, password: string, email: string): Promise<Re
 
 
 
-export const CheckMailAndLoginForRepeat = { 
-  async Checking(login: string, password: string, email: string): Promise<boolean> {
-      if (!email.trim() || !login.trim() || !password.trim()) {
+export const CheckLoginForRepeat = { 
+  async Checking(login: string, password: string): Promise<boolean> {
+      if (!login.trim() || !password.trim()) {
           return false;
       }
-      const user = await collection3.findOne({ $or: [{ login: login }, { email: email }] });
+      const user = await collection3.findOne({ login: login });
 
       if (user) {
           return false;
@@ -66,7 +66,20 @@ export const CheckMailAndLoginForRepeat = {
   }
 };
 
+export const CheckMailForRepeat = { 
+  async Checking(password: string, email: string): Promise<boolean> {
+      if (!email.trim() || !password.trim()) {
+          return false;
+      }
+      const user = await collection3.findOne({ email: email });
 
+      if (user) {
+          return false;
+      } else {
+        return true
+      }
+  }
+};
 
 export const ConfirmEmail = { 
   async UpdateConfirmationStatus(code: string): Promise<GetUserType | undefined> {
@@ -87,6 +100,26 @@ export const ConfirmEmail = {
 };
 
 
+export const CheckEmailForConfirmStatus = { 
+  async NoConfirmedStatus(code: string): Promise<boolean> {
+      if (!code.trim()) {
+          return false;
+      }
+      const user = await collection3.findOne({ confirmCode: code });
+
+      if(!user){
+        return false
+      }
+
+      if (user?.statusOfConfirmedEmail == true) {
+          return false;
+      } else {
+        return true
+      }
+  }
+};
+
+
 export const CheckEmailAndConfirmStatusForResend = { 
   async FindEmailInDB(email: string): Promise<boolean> {
       if (!email.trim()) {
@@ -94,7 +127,7 @@ export const CheckEmailAndConfirmStatusForResend = {
       }
       const user = await collection3.findOne({ email: email });
 
-      if (!user || user.statusOfConfirmedEmail == true) {
+      if (!user || user.statusOfConfirmedEmail === true) {
         return false;
       } else {
         return true
