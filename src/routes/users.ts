@@ -113,7 +113,7 @@ if (errorsMessages.length > 0) {
 const newUser = await socialRepositoryForUsers.createUser(login, password, email, createdAt);
 
 if (newUser) {
-  const { statusOfConfirmedEmail, confirmCode, ...rest } = newUser;
+  const { statusOfConfirmedEmail, confirmCode, userId, ...rest } = newUser;
   
   // Return the created user with status code 201
   return res.status(201).json(rest);

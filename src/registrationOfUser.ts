@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { ConfirmRegistration, GetUserType, RequestTypeOfRegistrationOfUser, collection3 } from "./db";
+import { BannedRefreshTokeens, ConfirmRegistration, GetUserType, RequestTypeOfRegistrationOfUser, collection3, collection5 } from "./db";
 import { v4 as uuidv4 } from 'uuid';
 import { Router } from "express";
 import { RegistrationOfUserSocialRepository } from "./send-mail";
@@ -25,7 +25,8 @@ async RegistrateUser(login: string, password: string, email: string): Promise<Re
       createdAt: createdAtUser,
       _id: objectId,
       statusOfConfirmedEmail: false,
-      confirmCode: activationCode
+      confirmCode: activationCode,
+      userId: objectId
     });
 
 
@@ -43,7 +44,8 @@ async RegistrateUser(login: string, password: string, email: string): Promise<Re
       email,
       createdAt: createdAtUser,
       statusOfConfirmedEmail: false,
-      confirmCode: activationCode  
+      confirmCode: activationCode,
+      userId: objectId
     };
   }
 };
@@ -131,6 +133,21 @@ export const CheckEmailAndConfirmStatusForResend = {
         return false;
       } else {
         return true
+      }
+  }
+};
+
+
+
+export const RevokedRefreshToken = {
+  async Revoke(token: string): Promise<boolean> {
+      try {
+          await collection5.insertOne({
+              refreshToken: token
+          });
+          return true;
+      } catch (error) {
+          return false;
       }
   }
 };

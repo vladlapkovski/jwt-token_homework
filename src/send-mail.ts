@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestTypeForResendEmail, RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection3 } from "./db";
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from "mongodb";
 
 export const emailRouter = Router({})
 
@@ -13,6 +14,7 @@ const nodemailer = require("nodemailer");
         if (!login.trim() || !password.trim() || !email.trim()) {
             return undefined;
         }
+        const objectId = new ObjectId
         const transporter = nodemailer.createTransport({
           service: "Gmail",
           host: "smtp.gmail.com",
@@ -43,7 +45,8 @@ const nodemailer = require("nodemailer");
           password,
           email,
           statusOfConfirmedEmail: false,
-          confirmCode: activationCode
+          confirmCode: activationCode,
+          userId: objectId
         };
     }
 };

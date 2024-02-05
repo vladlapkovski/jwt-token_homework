@@ -7,7 +7,7 @@ export const socialRepositoryForUsers = {
   async getUsers(): Promise<GetUserType[]> {
     const foundUsers = await collection3.find({}).toArray();
     const users = foundUsers.map((user) => {
-      const { _id, password, ...rest } = user;
+      const { _id, password, userId, ...rest } = user;
       return rest;
     });
     return users;
@@ -27,7 +27,8 @@ export const socialRepositoryForUsers = {
         createdAt: createdAtUser,
         _id: objectId,
         statusOfConfirmedEmail: true,
-        confirmCode: "no code status confirmed"
+        confirmCode: "no code status confirmed",
+        userId: objectId
       });
       return {
         id: result.insertedId,
@@ -35,7 +36,8 @@ export const socialRepositoryForUsers = {
         email,
         createdAt: createdAtUser,
         statusOfConfirmedEmail:true,
-        confirmCode: "no code status confirmed"
+        confirmCode: "no code status confirmed",
+        userId: objectId
       };
     }
   };

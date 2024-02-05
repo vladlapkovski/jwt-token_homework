@@ -80,7 +80,8 @@ export type RequestTypeOfRegistrationOfUser = {
   password: string;
   email: string;
   statusOfConfirmedEmail:boolean;
-  confirmCode: any
+  confirmCode: any,
+  userId: ObjectId
 }
 
 export type RequestTypeForResendEmail = {
@@ -101,6 +102,11 @@ export type ConfirmRegistration = {
   code: string;
 }
 
+export type BannedRefreshTokeens = {
+  [key: string]: any;
+  refreshToken: string;
+}
+
 const URL = process.env.MONGO_URL;
 console.log("url:", URL);
 if (!URL) {
@@ -117,6 +123,8 @@ export const collection2 = client.db().collection<collectionAuthType>("Auth");
 export const collection3 = client.db().collection<GetUserType>("Users");
 
 export const collection4 = client.db().collection<CreateCommentsType>("Comments");
+
+export const collection5 = client.db().collection<BannedRefreshTokeens>("RefreshTokens");
 
 
 export const runDb = async () => {

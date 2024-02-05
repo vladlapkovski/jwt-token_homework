@@ -1,13 +1,13 @@
 import express, {Request, Response, Router} from "express"
 import { getIDBlog, socialRepository } from "../social-repository-blogs";
 import { socialRepositoryForPostsInBlogs } from "../social-repositoryForPostsInBlogs"
-import { ConfirmRegistration, RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection, collection3, collectionAuthType, collectionPostsType } from '../db';
+import { ConfirmRegistration, RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection, collection3, collection5, collectionAuthType, collectionPostsType } from '../db';
 export const authRoutes = Router({}) 
 import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
 import { socialRepositoryForAuth } from "../social-repository-auth";
 import { jwtService, tokenService } from "../aplication/jwt-service";
-import { CheckEmailAndConfirmStatusForResend, CheckEmailForConfirmStatus, CheckLoginForRepeat, CheckMailForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
+import { CheckEmailAndConfirmStatusForResend, CheckEmailForConfirmStatus, CheckLoginForRepeat, CheckMailForRepeat, ConfirmEmail, RevokedRefreshToken, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
 import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from "../send-mail";
 
 
@@ -45,7 +45,7 @@ authRoutes.post('/login', async (req: Request, res: Response) => {
         const refreshToken = await tokenService.createRefreshToken(user)
         // Если данные верны, возвращаем статус 204
         return res.status(200)
-         .cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
+         .cookie('refreshToken', refreshToken, { httpOnly: true, secure: true})
          .json({ accessToken: JWTtoken });
     } else {
         return res.status(401).send(); 
@@ -69,10 +69,10 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
     const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
   
     if (authUser) {
-      const { _id, createdAt, password, ...rest } = authUser;
-      res.status(200).send(rest);
+      const { _id, createdAt, password, confirmCode, id, statusOfConfirmedEmail, ...rest } = authUser;
+      return res.status(200).send(rest);
     } else {
-      res.sendStatus(404);
+        return res.sendStatus(401);
     }
   });
 
@@ -215,24 +215,45 @@ authRoutes.post('/registration-confirmation', async (req: Request, res: Response
 
 
 
-authRoutes.post('/:refresh-token', async (req: Request, res: Response) => {
+authRoutes.post('/logout', async (req: Request, res: Response) => {
+    const token = req.cookies['refreshToken']; // Get refreshToken from cookies
+
+    const userId = await tokenService.getUserIdByToken(token); // Get user id by refreshToken
+
+    const authUser = await collection3.findOne({ _id: userId as ObjectId });
+
+    const revoked = await RevokedRefreshToken.Revoke(token); // Revoke refreshToken
+
+    if (!authUser || revoked == false) {
+        res.sendStatus(401);
+    } else {
+        res.sendStatus(204);
+    }
+});
+
+
+  authRoutes.post('/refresh-token', async (req: Request, res: Response) => {
     
 
     const RefreshToken = req.cookies['refreshToken']
 
     const JWTtoken = await tokenService.getUserIdByToken(RefreshToken)   
 
-
     const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
 
-  
+    const checkTokenForValid = await collection5.findOne({ refreshToken: RefreshToken })
+
+    if(checkTokenForValid) {
+       return res.sendStatus(401);
+    }
+
     if (authUser) {
     const JWTtoken = await jwtService.createJWT(authUser)
     const refreshToken = await tokenService.createRefreshToken(authUser)
-      res.status(200)
-      .cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
+    return res.status(200)
+      .cookie('refreshToken', refreshToken, { httpOnly: true, secure: true})
       .json({ accessToken: JWTtoken });
     } else {
-      res.sendStatus(401);
+        return res.sendStatus(401);
     }
-  });
+  }); 
