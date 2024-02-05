@@ -112,8 +112,15 @@ if (errorsMessages.length > 0) {
 // Создаем новый блог
 const newUser = await socialRepositoryForUsers.createUser(login, password, email, createdAt);
 
-// Возвращаем созданный блог с кодом 201
-return res.status(201).json(newUser);
+if (newUser) {
+  const { statusOfConfirmedEmail, confirmCode, ...rest } = newUser;
+  
+  // Return the created user with status code 201
+  return res.status(201).json(rest);
+} 
+
+// Возвращаем созданны блог с кодом 201
+return res.status(404).send();
 
 });
 
