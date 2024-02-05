@@ -7,6 +7,8 @@ import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
 import { commentsRoutes } from "./routes/comments";
 import { emailRouter } from "./send-mail";
+import  cookieParser  from 'cookie-parser'
+
 
 export const appStart = ()=> {
 const app = express();
@@ -14,6 +16,7 @@ const app = express();
 const parserMiddleware = express.json()
 
 
+app.use(cookieParser())
 app.use(parserMiddleware)
 app.use("/hometask_07/api/blogs", blogsRoutes)
 app.use("/hometask_07/api", postsForBlogsRoutes)

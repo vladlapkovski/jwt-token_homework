@@ -19,3 +19,19 @@ export const jwtService = {
         }
     }
 }   
+
+
+export const tokenService = {
+    async createRefreshToken(user: GetUserType) {
+        const Refreshtoken = jwt.sign({userId: user.id}, settings.Refresh_Secret, {expiresIn: "1d"})
+        return Refreshtoken
+    },
+    async getUserIdByToken(token: string) {
+        try {
+            const result: any = jwt.verify(token, settings.Refresh_Secret)
+            return new ObjectId(result.userId)
+        } catch(error) {
+            return null
+        }
+    }
+}  

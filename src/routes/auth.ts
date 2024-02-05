@@ -6,7 +6,7 @@ export const authRoutes = Router({})
 import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
 import { socialRepositoryForAuth } from "../social-repository-auth";
-import { jwtService } from "../aplication/jwt-service";
+import { jwtService, tokenService } from "../aplication/jwt-service";
 import { CheckEmailAndConfirmStatusForResend, CheckEmailForConfirmStatus, CheckLoginForRepeat, CheckMailForRepeat, ConfirmEmail, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
 import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from "../send-mail";
 
@@ -42,8 +42,11 @@ authRoutes.post('/login', async (req: Request, res: Response) => {
 
     if (user) {
         const JWTtoken = await jwtService.createJWT(user)
+        const refreshToken = await tokenService.createRefreshToken(user)
         // Если данные верны, возвращаем статус 204
-        return res.status(200).json({ accessToken: JWTtoken });
+        return res.status(200)
+         .cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
+         .json({ accessToken: JWTtoken });
     } else {
         return res.status(401).send(); 
     }
@@ -209,3 +212,27 @@ authRoutes.post('/registration-confirmation', async (req: Request, res: Response
         return res.status(400).json({ errorsMessages: [{ message: " Invalid code", field: "code" }] });
     }
 });
+
+
+
+authRoutes.post('/:refresh-token', async (req: Request, res: Response) => {
+    
+
+    const RefreshToken = req.cookies['refreshToken']
+
+    const JWTtoken = await tokenService.getUserIdByToken(RefreshToken)   
+
+
+    const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
+
+  
+    if (authUser) {
+    const JWTtoken = await jwtService.createJWT(authUser)
+    const refreshToken = await tokenService.createRefreshToken(authUser)
+      res.status(200)
+      .cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
+      .json({ accessToken: JWTtoken });
+    } else {
+      res.sendStatus(401);
+    }
+  });
