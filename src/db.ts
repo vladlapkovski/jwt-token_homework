@@ -107,6 +107,24 @@ export type BannedRefreshTokeens = {
   refreshToken: string;
 }
 
+export type APIRequsts = {
+  [key: string]: any;
+  IP: string;
+  URL: string;
+  date: Date;
+}
+
+export type UserLoginInformation = {
+  [key: string]: any;
+  ip: string | string[];
+  title: string;
+  lastActiveDate: string;
+  deviceId: string;
+  userId: ObjectId;
+}
+
+
+
 const URL = process.env.MONGO_URL;
 console.log("url:", URL);
 if (!URL) {
@@ -125,6 +143,8 @@ export const collection3 = client.db().collection<GetUserType>("Users");
 export const collection4 = client.db().collection<CreateCommentsType>("Comments");
 
 export const collection5 = client.db().collection<BannedRefreshTokeens>("RefreshTokens");
+
+export const collection6 = client.db().collection<UserLoginInformation>("LoginInformation");
 
 
 export const runDb = async () => {
