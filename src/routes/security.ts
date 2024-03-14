@@ -10,14 +10,21 @@ export const securityRoutes = Router()
 securityRoutes.get('/', async (req: Request, res: Response) => {
 
     
-    if(!req.headers.authorization) {
-        res.sendStatus(401)
-        return
+    const token = req.cookies['refreshToken']
+
+    // const token = req.headers.authorization.split(" ")[1] 
+
+    // const deviceId = await tokenService.getDeviceIdByToken(token)
+
+    // if(deviceId == undefined) {
+    //     return res.sendStatus(401);
+    // }
+
+    const JWTtoken = await tokenService.getUserIdByToken(token)  
+
+    if(JWTtoken == undefined || null) {
+      return res.sendStatus(401);
     }
-
-    const token = req.headers.authorization.split(" ")[1]
-
-    const JWTtoken = await jwtService.getUserIdByToken(token)   
 
     const authUser = await (collection6.find<UserLoginInformation>({ userId: JWTtoken as ObjectId })).toArray();
 
@@ -51,6 +58,12 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
 
     const deviceId = req.params.deviceId
     
+    const device1 = await collection6.findOne({deviceId: deviceId as unknown as string});
+
+      if(!device1){
+        return res.status(404).send()
+      }
+
     const device = await collection6.findOne({ 
         $and: [
             { deviceId: deviceId as unknown as string },
@@ -59,7 +72,7 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
     });
 
     if(!device){
-        return res.status(404).send()
+        return res.status(403).send()
     }
     
     if (device) {

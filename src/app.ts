@@ -18,7 +18,7 @@ const app = express();
 const parserMiddleware = express.json()
 
 
-app.use(limiter)
+// app.use(limiter)
 app.set('trust proxy', true)
 app.use(cookieParser())
 app.use(parserMiddleware)

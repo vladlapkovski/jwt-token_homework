@@ -12,9 +12,12 @@ import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from 
 import { socialRepositoryForIP, socialRepositoryForLoginInformation } from "../userInformation";
 import { rateLimit } from 'express-rate-limit'
 
+import bcrypt from 'bcrypt';
+
+
 export const limiter = rateLimit({
-	windowMs:  10 * 1000, // 15 minutes
-	max: 10, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	windowMs:  10 * 1000, // 10 sec
+	max: 10, // Limit each IP to 100 requests per `window`
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 })
@@ -22,6 +25,9 @@ export const limiter = rateLimit({
 
 
 authRoutes.post('/login', limiter, async (req: Request, res: Response) => {
+    
+
+
     const { loginOrEmail, password } = req.body as collectionAuthType;
     let title = req.get('User-Agent')
     const errorsMessages = [];
@@ -61,6 +67,13 @@ authRoutes.post('/login', limiter, async (req: Request, res: Response) => {
         }
         const userId = user.id
         const checkForActiveSessions = await collection6.findOne({ userId: user.id })
+            // if (!checkForActiveSessions) {
+            //     const session = await socialRepositoryForLoginInformation.createInfo(title, ip, userId)
+            //     if (!session){
+            //         return res.status(400).send()
+            //     }
+            // } 
+
             if (checkForActiveSessions?.title != title) {
                 session = await socialRepositoryForLoginInformation.createInfo(title, ip, userId)
                 if (!session){
@@ -68,13 +81,7 @@ authRoutes.post('/login', limiter, async (req: Request, res: Response) => {
                 }
             }
 
-            if (!checkForActiveSessions) {
-                const session = await socialRepositoryForLoginInformation.createInfo(title, ip, userId)
-                if (!session){
-                    return res.status(400).send()
-                }
-            } 
-
+            
             
             
             
@@ -276,19 +283,25 @@ authRoutes.post('/logout', async (req: Request, res: Response) => {
     
 
     const RefreshToken = req.cookies['refreshToken']
-
+    if(!RefreshToken) {
+        return res.sendStatus(404);
+    }
     const JWTtoken = await tokenService.getUserIdByToken(RefreshToken)   
+
+    if(JWTtoken == null){
+        return res.sendStatus(404);
+    }
 
     const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
 
+    
     const deviceId = await tokenService.getDeviceIdByToken(RefreshToken)
-
-    if(deviceId == undefined) {
-        return res.sendStatus(401);
-    }
+    console.log(deviceId)
 
     const deviceId2 = deviceId?.toString()
-
+    if (deviceId2 == undefined){
+        return res.sendStatus(401);   
+    } 
     const checkTokenForValid = await collection5.findOne({ refreshToken: RefreshToken })
 
     if(checkTokenForValid) {
