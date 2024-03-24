@@ -1,7 +1,7 @@
 import express, {Request, Response, Router} from "express"
 import { getIDBlog, socialRepository } from "../social-repository-blogs";
 import { socialRepositoryForPostsInBlogs } from "../social-repositoryForPostsInBlogs"
-import { ConfirmRegistration, RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection, collection3, collection5, collection6, collectionAuthType, collectionPostsType } from '../db';
+import { ConfirmRegistration, RequestTypeOfRegistrationOfUser, ResendingEmailInputData, collection, collection3, collection5, collection6, collection7, collectionAuthType, collectionPostsType } from '../db';
 export const authRoutes = Router({}) 
 import { ObjectId } from 'mongodb';
 import { updateIDBlog } from "../social-repository-blogs"
@@ -9,41 +9,65 @@ import { socialRepositoryForAuth } from "../social-repository-auth";
 import { jwtService, tokenService } from "../aplication/jwt-service";
 import { CheckEmailAndConfirmStatusForResend, CheckEmailForConfirmStatus, CheckLoginForRepeat, CheckMailForRepeat, ConfirmEmail, RevokedRefreshToken, socialRepositoryForRegistrationUsers } from "../registrationOfUser";
 import { RegistrationOfUserSocialRepository, ResendEmailSocialRepository } from "../send-mail";
-import { socialRepositoryForIP, socialRepositoryForLoginInformation } from "../userInformation";
+import { socialRepositoryForIP, socialRepositoryForLoginInformation, socialRepositoryForLoginInformation2 } from "../userInformation";
 import { rateLimit } from 'express-rate-limit'
 
 import bcrypt from 'bcrypt';
 
 
 export const limiter = rateLimit({
-	windowMs:  10 * 1000, // 10 sec
-	max: 10, // Limit each IP to 100 requests per `window`
+	windowMs:  9.5 * 1000, // 10 sec
+	limit: 5, // Limit each IP to 100 requests per `window`
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	legacyHeaders: true, // Disable the `X-RateLimit-*` headers
+    
+})
+
+export const limiter2 = rateLimit({
+	windowMs:  9.5 * 1000, // 10 sec
+	limit: 5, // Limit each IP to 100 requests per `window`
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: true, // Disable the `X-RateLimit-*` headers
+    
+})
+
+export const limiter3 = rateLimit({
+	windowMs:  9.5 * 1000, // 10 sec
+	limit: 5, // Limit each IP to 100 requests per `window`
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: true, // Disable the `X-RateLimit-*` headers
+    
+})
+
+export const limiter4 = rateLimit({
+	windowMs:  9.5 * 1000, // 10 sec
+	limit: 5, // Limit each IP to 100 requests per `window`
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: true, // Disable the `X-RateLimit-*` headers
+    
 })
 
 
 
+
 authRoutes.post('/login', limiter, async (req: Request, res: Response) => {
-    
-
-
     const { loginOrEmail, password } = req.body as collectionAuthType;
-    let title = req.get('User-Agent')
-    const errorsMessages = [];
-    if(!title) {
-        title = "browser"
+    let title = req.get('User-Agent');
+
+    if (!title) {
+        title = "browser";
     }
+
+    const errorsMessages = [];
     
-    // Проверяем, что все обязательные поля заполнены
-    if (typeof loginOrEmail !== "string" || !loginOrEmail || loginOrEmail?.trim()?.length == 0) {
+    if (typeof loginOrEmail !== "string" || !loginOrEmail || loginOrEmail.trim().length === 0) {
         errorsMessages.push({
             message: 'Invalid loginOrEmail', 
             field: "loginOrEmail"
         });
     }
 
-    if (typeof password !== "string" || !password || password?.trim()?.length == 0 || password?.length > 20) {
+    if (typeof password !== "string" || !password || password.trim().length === 0 || password.length > 20) {
         errorsMessages.push({
             message: 'Invalid password', 
             field: "password"
@@ -51,52 +75,45 @@ authRoutes.post('/login', limiter, async (req: Request, res: Response) => {
     }
 
     if (errorsMessages.length > 0) {
-        return res.status(400).json({
-            errorsMessages
-        });
+        return res.status(400).json({ errorsMessages });
     }
 
     let session;
-    // Проверяем данные в базе данных
+
     const user = await socialRepositoryForAuth.createAuth(loginOrEmail, password);
 
     if (user) {
-        let ip = await socialRepositoryForIP.IP(req)
+        let ip = await socialRepositoryForIP.IP(req);
+
         if (!ip) {
-            ip = "no ip address received"
+            ip = "no ip address received";
         }
-        const userId = user.id
-        const checkForActiveSessions = await collection6.findOne({ userId: user.id })
-            // if (!checkForActiveSessions) {
-            //     const session = await socialRepositoryForLoginInformation.createInfo(title, ip, userId)
-            //     if (!session){
-            //         return res.status(400).send()
-            //     }
-            // } 
 
-            if (checkForActiveSessions?.title != title) {
-                session = await socialRepositoryForLoginInformation.createInfo(title, ip, userId)
-                if (!session){
-                    return res.status(400).send()
-                }
+        const userId = user.id;
+        const checkForActiveSessions = await collection6.findOne({ userId: user.id });
+
+        if (checkForActiveSessions?.title !== title) {
+            session = await socialRepositoryForLoginInformation.createInfo(title, ip, userId);
+
+            if (!session) {
+                return res.status(400).send();
             }
-
-            
-            
-            
-            
-        if(session == undefined) {
-            return res.status(400).send()
         }
-        const JWTtoken = await jwtService.createJWT(user)
-        const refreshToken = await tokenService.createRefreshToken(user, session.deviceId)
-        // Если данные верны, возвращаем статус 204
+
+        if (session === undefined) {
+            return res.status(400).send();
+        }
+
+        const JWTtoken = await jwtService.createJWT(user);
+        const refreshToken = await tokenService.createRefreshToken(user, session.deviceId);
+
         return res.status(200)
-         .cookie('refreshToken', refreshToken, { httpOnly: true, secure: true})
-         .json({ accessToken: JWTtoken });
+            .cookie('refreshToken', refreshToken, { httpOnly: true, secure: true })
+            .json({ accessToken: JWTtoken });
     } else {
-        return res.status(401).send(); 
-    }
+        console.log(new Date().toISOString())
+        return res.status(401).send();
+        }
 });
 
 
@@ -108,6 +125,7 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
         res.sendStatus(401)
         return
     }
+
 
     const token = req.headers.authorization.split(" ")[1]
 
@@ -129,7 +147,7 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
 
 
 
-  authRoutes.post('/registration', async (req: Request, res: Response) => {
+  authRoutes.post('/registration', limiter2, async (req: Request, res: Response) => {
     const { login, password, email } = req.body as RequestTypeOfRegistrationOfUser;
 
     const errorsMessages = [];
@@ -187,7 +205,7 @@ authRoutes.get('/:me', async (req: Request, res: Response) => {
 
 
 
-authRoutes.post('/registration-email-resending', async (req: Request, res: Response) => {
+authRoutes.post('/registration-email-resending', limiter3, async (req: Request, res: Response) => {
     const { email } = req.body as ResendingEmailInputData;
 
     const errorsMessages = [];
@@ -224,7 +242,7 @@ authRoutes.post('/registration-email-resending', async (req: Request, res: Respo
 
 
 
-authRoutes.post('/registration-confirmation', async (req: Request, res: Response) => {
+authRoutes.post('/registration-confirmation', limiter4, async (req: Request, res: Response) => {
     const { code } = req.body as ConfirmRegistration;
 
     const errorsMessages = [];
@@ -264,17 +282,37 @@ authRoutes.post('/registration-confirmation', async (req: Request, res: Response
 
 authRoutes.post('/logout', async (req: Request, res: Response) => {
     const token = req.cookies['refreshToken']; // Get refreshToken from cookies
-
+    
     const userId = await tokenService.getUserIdByToken(token); // Get user id by refreshToken
-
+    if(userId == undefined){
+        return res.sendStatus(401)
+    }
     const authUser = await collection3.findOne({ _id: userId as ObjectId });
 
+    const checkTokenForValid = await collection5.findOne({ refreshToken: token })
+    if(checkTokenForValid) {
+        return res.sendStatus(401);
+    }
+
+    const deviceId = await tokenService.getDeviceIdByToken(token)
+    const checkDeviceIdForValid = await collection6.findOne({deviceId: deviceId})
+    if (checkDeviceIdForValid == undefined){
+        return res.sendStatus(401);   
+    } 
+
     const revoked = await RevokedRefreshToken.Revoke(token); // Revoke refreshToken
+     
+    const deleteUser = await collection6.deleteOne({ 
+        $and: [
+            { deviceId: deviceId as unknown as string },
+            { userId: userId }
+        ]
+    })
 
     if (!authUser || revoked == false) {
-        res.sendStatus(401);
+        return res.sendStatus(401);
     } else {
-        res.sendStatus(204);
+        return res.sendStatus(204);
     }
 });
 
@@ -286,27 +324,60 @@ authRoutes.post('/logout', async (req: Request, res: Response) => {
     if(!RefreshToken) {
         return res.sendStatus(404);
     }
-    const JWTtoken = await tokenService.getUserIdByToken(RefreshToken)   
+    let title = req.get('User-Agent');
 
-    if(JWTtoken == null){
+    if (!title) {
+        title = "browser";
+    }
+
+    let ip = await socialRepositoryForIP.IP(req);
+
+        if (!ip) {
+            ip = "no ip address received";
+        }
+
+    const userId = await tokenService.getUserIdByToken(RefreshToken)   
+
+    if(userId == null){
         return res.sendStatus(404);
     }
 
-    const authUser = await collection3.findOne({ _id: JWTtoken as ObjectId });
-
+    const authUser = await collection3.findOne({ _id: userId as ObjectId });
+    if(!authUser){
+        return res.sendStatus(401);  
+    }
     
     const deviceId = await tokenService.getDeviceIdByToken(RefreshToken)
-    console.log(deviceId)
+    const checkDeviceIdForValid = await collection6.findOne({deviceId: deviceId})
+    if (checkDeviceIdForValid == undefined){
+        return res.sendStatus(401);   
+    } 
 
     const deviceId2 = deviceId?.toString()
     if (deviceId2 == undefined){
         return res.sendStatus(401);   
     } 
     const checkTokenForValid = await collection5.findOne({ refreshToken: RefreshToken })
-
+    
     if(checkTokenForValid) {
        return res.sendStatus(401);
     }
+
+    const revoked = await RevokedRefreshToken.Revoke(RefreshToken);
+    
+    const deleteUser = await collection6.deleteOne({ 
+        $and: [
+            { deviceId: deviceId as unknown as string },
+            { userId: userId }
+        ]
+    })
+    
+    const session = await socialRepositoryForLoginInformation2.createInfo2(title, ip, userId, deviceId2);
+
+            if (!session) {
+                return res.status(400).send();
+            }
+    
 
     if (authUser) {
     const JWTtoken = await jwtService.createJWT(authUser)

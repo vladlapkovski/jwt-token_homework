@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
 import { jwtService, tokenService } from "../aplication/jwt-service";
-import { UserLoginInformation, collection3, collection6 } from "../db";
+import { UserLoginInformation, collection3, collection6, collection7 } from "../db";
 import {Request, Response, Router} from "express"
+import { RevokedRefreshToken } from "../registrationOfUser";
 
 
 
@@ -11,14 +12,6 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
 
     
     const token = req.cookies['refreshToken']
-
-    // const token = req.headers.authorization.split(" ")[1] 
-
-    // const deviceId = await tokenService.getDeviceIdByToken(token)
-
-    // if(deviceId == undefined) {
-    //     return res.sendStatus(401);
-    // }
 
     const JWTtoken = await tokenService.getUserIdByToken(token)  
 
@@ -48,6 +41,8 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
 
     const RefreshToken = req.cookies['refreshToken']
 
+    // const revoked = await RevokedRefreshToken.Revoke(RefreshToken);
+
     const userId = await tokenService.getUserIdByToken(RefreshToken)
 
     if(userId == null ) {
@@ -55,6 +50,8 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
     }
 
     // const deviceId = await tokenService.getDeviceIdByToken(RefreshToken)
+
+
 
     const deviceId = req.params.deviceId
     
@@ -75,6 +72,8 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
         return res.status(403).send()
     }
     
+    // const BannedDeviceId = await collection7.insertOne({deviceId: deviceId})
+
     if (device) {
       await collection6.deleteOne({ 
         $and: [
@@ -114,7 +113,7 @@ securityRoutes.get('/', async (req: Request, res: Response) => {
     if(!device){
         return res.status(404).send()
     }
-    
+    // const revoked = await RevokedRefreshToken.Revoke(RefreshToken);
     if (device) {
       await collection6.deleteMany({
         $and: [

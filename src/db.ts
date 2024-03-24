@@ -123,6 +123,11 @@ export type UserLoginInformation = {
   userId: ObjectId;
 }
 
+export type BannedDeviceId = {
+  [key: string]: any;
+  deviceId: string;
+}
+
 
 
 const URL = process.env.MONGO_URL;
@@ -145,6 +150,8 @@ export const collection4 = client.db().collection<CreateCommentsType>("Comments"
 export const collection5 = client.db().collection<BannedRefreshTokeens>("RefreshTokens");
 
 export const collection6 = client.db().collection<UserLoginInformation>("LoginInformation");
+
+export const collection7 = client.db().collection<BannedDeviceId>("BannedDeviceId");
 
 
 export const runDb = async () => {

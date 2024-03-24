@@ -44,4 +44,28 @@ export const socialRepositoryForLoginInformation = {
     }
 };
 
+export const socialRepositoryForLoginInformation2 = { 
+    async createInfo2(title: string, ip: string | string[], userId: ObjectId, deviceId2:string): Promise<UserLoginInformation | undefined> {
+        if (!title.trim()) {
+            return undefined;
+        }
+        const uuid = uuidv4()
+        const createdAt1 = new Date().toISOString();
+        const result = await collection6.insertOne({
+            ip: ip,
+            title: title,
+            userId: userId,
+            lastActiveDate: createdAt1,
+            deviceId: deviceId2
+        });
+        return {
+            ip: ip,
+            title: title,
+            userId: userId,
+            lastActiveDate: createdAt1,
+            deviceId: deviceId2
+        };
+    }
+};
+
 
