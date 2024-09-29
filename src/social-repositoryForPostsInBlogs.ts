@@ -47,6 +47,18 @@ export const socialRepositoryForPostsInBlogs = {
         blogName: BLOGNAME,
         createdAt: createdAt2,
         _id: objectId1,
+        extendedLikesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: "None",
+          newestLikes: [
+            {
+              addedAt: undefined,
+              userId: undefined,
+              login: undefined
+            }
+          ]
+        }
       });
   
       return {
@@ -56,7 +68,19 @@ export const socialRepositoryForPostsInBlogs = {
         content,
         blogId,
         blogName: BLOGNAME,
-        createdAt: createdAt2
+        createdAt: createdAt2,
+        extendedLikesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: "None",
+          newestLikes: [
+            {
+              addedAt: undefined,
+              userId: undefined,
+              login: undefined
+            }
+          ]
+        }
       };
     }
   };

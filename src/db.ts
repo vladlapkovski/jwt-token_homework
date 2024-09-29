@@ -24,6 +24,18 @@ export type collectionPostsType = {
   blogId: string;
   blogName: string;
   createdAt: string;
+  extendedLikesInfo: {
+        likesCount: number,
+        dislikesCount: number,
+        myStatus: string,
+        newestLikes: [
+          {
+            addedAt: string | undefined,
+            userId: string | undefined,
+            login: string | undefined
+          }
+        ]
+      }
 }
 
 export type collectionAuthType = {
@@ -70,6 +82,18 @@ export type GetPostComment = {
   };
   createdAt: string;
   postId: string;
+  likesInfo: {
+    likesCount: number,
+    dislikesCount: number,
+    myStatus: string
+  }
+}
+
+export type CommentLikes = {
+  [key: string]: any;
+  commentId: ObjectId;
+  userId: ObjectId;
+  status: string;
 }
 
 
@@ -128,6 +152,13 @@ export type BannedDeviceId = {
   deviceId: string;
 }
 
+export type PostLikes = {
+  [key: string]: any;
+  postId: ObjectId;
+  userId: ObjectId;
+  status: string;
+}
+
 
 
 const URL = process.env.MONGO_URL;
@@ -145,13 +176,18 @@ export const collection2 = client.db().collection<collectionAuthType>("Auth");
 
 export const collection3 = client.db().collection<GetUserType>("Users");
 
-export const collection4 = client.db().collection<CreateCommentsType>("Comments");
+export const collection4 = client.db().collection<GetPostComment>("Comments");
 
 export const collection5 = client.db().collection<BannedRefreshTokeens>("RefreshTokens");
 
 export const collection6 = client.db().collection<UserLoginInformation>("LoginInformation");
 
 export const collection7 = client.db().collection<BannedDeviceId>("BannedDeviceId");
+
+export const collection8 = client.db().collection<CommentLikes>("LikeStatusForComment");
+
+export const collection9 = client.db().collection<PostLikes>("LikeStatusForPost");
+
 
 
 export const runDb = async () => {
